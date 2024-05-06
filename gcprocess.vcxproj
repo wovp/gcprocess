@@ -130,14 +130,14 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="gcprocess.h" />
     <ClInclude Include="gxControlProcess.h" />
-    <ClInclude Include="gxGetProcess.h" />
+    <ClInclude Include="gxStr.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="gcprocess.cpp" />
     <ClCompile Include="gxControlProcess.cpp" />
-    <ClCompile Include="gxGetProcess.cpp" />
+    <ClCompile Include="gxStr.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="gcprocess.rc" />

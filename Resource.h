@@ -15,6 +15,10 @@
 #define IDC_MYICON				2
 #ifndef IDC_STATIC
 #define IDC_STATIC				-1
+
+// 窗口ID值
+#define IDC_PROCESSLISTBOX 1001
+
 #endif
 // 新对象的下一组默认值
 //

@@ -24,7 +24,6 @@ bool gxControlProcess::gxPauseProcess(DWORD processId)
         if (threadCount == (DWORD)-1)
         {
             // ‘›Õ£œﬂ≥Ã ß∞‹
-             // ‘›Õ£œﬂ≥Ã ß∞‹
             DWORD dwError = GetLastError();
             std::cout << "Wow64SuspendThread failed with error: " << dwError << std::endl;
             return false;

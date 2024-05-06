@@ -3,6 +3,7 @@
 #include "framework.h"
 #include "gcprocess.h"
 #include "gxControlProcess.h"
+#include "gxStr.h"
 #define MAX_LOADSTRING 100
 
 // 全局变量:
@@ -16,7 +17,9 @@ BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 gxControlProcess gx;
-
+gxStr gxstr;
+// 窗口列表类句柄
+HWND hList;
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
                      _In_ LPWSTR    lpCmdLine,
@@ -28,14 +31,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     // TODO: 在此处放置代码。
     
     // bool f = gx.gxPauseProcess(18580);
-    bool f = gx.gxResumeProcess(18580);
-    if (f) {
+    // bool f = gx.gxResumeProcess(18580);
+    /*if (f) {
         printf("成功关闭");
-    }
-    // 创建自定义字体
+    }*/
     
-
-
     // 初始化全局字符串
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
     LoadStringW(hInstance, IDC_GCPROCESS, szWindowClass, MAX_LOADSTRING);
@@ -138,10 +138,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
 
         // 创建列表框
-        HWND hList = CreateWindowEx(0, L"LISTBOX", nullptr,
+        hList = CreateWindowEx(0, L"LISTBOX", nullptr,
             WS_CHILD | WS_VISIBLE | WS_VSCROLL | LBS_STANDARD,
             10, 10, 600, 200,
-            hWnd, nullptr, nullptr, nullptr);
+            hWnd, reinterpret_cast<HMENU>(IDC_PROCESSLISTBOX), nullptr, nullptr);
         // 将字体应用到列表框
         SendMessage(hList, WM_SETFONT, reinterpret_cast<WPARAM>(hFont), TRUE);
         // 获取进程信息
@@ -150,7 +150,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         // 将进程信息添加到列表框中
         for (const auto& process : gxprocesses)
         {
-            std::wstring processInfo = L"Process ID: " + std::to_wstring(process.processId) + L", Process Name: " + process.processName;
+            std::wstring processInfo = L"Process ID:" + std::to_wstring(process.processId) + L", " + process.processName;
             SendMessage(hList, LB_ADDSTRING, 0, reinterpret_cast<LPARAM>(processInfo.c_str()));
         }
     }
@@ -158,9 +158,31 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_COMMAND:
         {
             int wmId = LOWORD(wParam);
+            int wmEvent = HIWORD(wParam);
             // 分析菜单选择:
             switch (wmId)
             {
+                // 处理列表框的消息
+            case IDC_PROCESSLISTBOX: // 假设列表框的ID是 IDC_YOURLISTBOX
+                if (wmEvent == LBN_SELCHANGE) // 用户选择了新的项
+                {
+                    HWND hListBox = reinterpret_cast<HWND>(lParam);
+                    int selectedIndex = SendMessage(hListBox, LB_GETCURSEL, 0, 0);
+                    if (selectedIndex != LB_ERR)
+                    {
+                        // 获取选定项的文本
+                        wchar_t buffer[256]; // 假设文本不超过 256 个字符
+                        SendMessage(hListBox, LB_GETTEXT, selectedIndex, reinterpret_cast<LPARAM>(buffer));
+                        // 将文本和下标格式化为一个字符串
+                        int gxProcessId = gxstr.extractID(buffer);
+                        wchar_t message[512]; // 假设消息不超过 512 个字符
+                        swprintf_s(message, 512, L"选定项文本：%s\n选定项下标：%d\n 进程号 %d", buffer, selectedIndex, gxProcessId);
+
+                        // 弹出消息框显示选定项的文本和下标
+                        MessageBox(hWnd, message, L"选定项信息", MB_OK | MB_ICONINFORMATION);
+                    }
+                }
+                break;
             case IDM_ABOUT:
                 DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
                 break;
