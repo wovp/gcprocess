@@ -44,6 +44,9 @@
     <ClCompile Include="gxStr.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="README">
+      <Filter>资源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="gcprocess.rc">
