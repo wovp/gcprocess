@@ -19,6 +19,10 @@
 // 窗口ID值
 #define IDC_PROCESSLISTBOX 1001
 
+// 搜索按钮ID值
+#define IDC_SEARCH_BUTTON 1002
+// 搜索框ID值
+#define IDC_SEARCH_BOX 1003
 #endif
 // 新对象的下一组默认值
 //

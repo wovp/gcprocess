@@ -20,6 +20,10 @@ gxControlProcess gx;
 gxStr gxstr;
 // 窗口列表类句柄
 HWND hList;
+// 搜索结果列表框句柄
+HWND hNewListBox;
+
+std::vector<std::wstring> PerformSearch(const std::wstring& searchText);
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
                      _In_ LPWSTR    lpCmdLine,
@@ -140,7 +144,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         // 创建列表框
         hList = CreateWindowEx(0, L"LISTBOX", nullptr,
             WS_CHILD | WS_VISIBLE | WS_VSCROLL | LBS_STANDARD,
-            10, 10, 600, 200,
+            gxProcessX, gxProcessY, gxProcessLength, gxProcessWidth,
             hWnd, reinterpret_cast<HMENU>(IDC_PROCESSLISTBOX), nullptr, nullptr);
         // 将字体应用到列表框
         SendMessage(hList, WM_SETFONT, reinterpret_cast<WPARAM>(hFont), TRUE);
@@ -153,6 +157,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             std::wstring processInfo = L"Process ID:" + std::to_wstring(process.processId) + L", " + process.processName;
             SendMessage(hList, LB_ADDSTRING, 0, reinterpret_cast<LPARAM>(processInfo.c_str()));
         }
+
+        // 创建搜索框控件
+        HWND hSearchBox = CreateWindowEx(0, L"EDIT", nullptr, WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
+            gxSearchX, gxSearchY, gxSearchLength, gxSearchWidth, hWnd, reinterpret_cast<HMENU>(IDC_SEARCH_BOX), nullptr, nullptr);
+
+        // 创建搜索按钮控件
+        HWND hSearchButton = CreateWindow(L"BUTTON", L"搜索", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+            gxSearchButtonX, gxSearchButtonY, gxSearchButtonLength, gxSearchButtonWidth, hWnd, reinterpret_cast<HMENU>(IDC_SEARCH_BUTTON), nullptr, nullptr);
     }
         break;
     case WM_COMMAND:
@@ -162,7 +174,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             // 分析菜单选择:
             switch (wmId)
             {
-                // 处理列表框的消息
+            // 处理列表框的消息
             case IDC_PROCESSLISTBOX: // 假设列表框的ID是 IDC_YOURLISTBOX
                 if (wmEvent == LBN_SELCHANGE) // 用户选择了新的项
                 {
@@ -183,6 +195,34 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                 }
                 break;
+
+            // 处理搜索请求
+            case IDC_SEARCH_BUTTON:
+            {
+                // 搜索按钮被点击
+    
+                wchar_t message[512]; // 假设消息不超过 512 个字符
+                wchar_t buffer[256];
+                GetWindowText(GetDlgItem(hWnd, IDC_SEARCH_BOX), buffer, 256);
+                std::wstring gxsearchText(buffer);
+                swprintf_s(message, 512, L"选定项文本：%s", buffer);
+                MessageBox(hWnd, message, L"选定项信息", MB_OK | MB_ICONINFORMATION);
+
+                // 搜索按钮被点击，执行搜索操作
+                std::vector<std::wstring> matchingItems = PerformSearch(gxsearchText);
+
+                // 创建新的列表框
+                HWND hNewListBox = CreateWindowEx(0, L"LISTBOX", nullptr,
+                    WS_CHILD | WS_VISIBLE | WS_VSCROLL | LBS_STANDARD,
+                    gxSearchProcessX, gxSearchProcessY, gxSearchProcessLength, gxSearchProcessWidth, hWnd, nullptr, nullptr, nullptr);
+
+                // 向新列表框添加满足条件的项
+                for (const auto& item : matchingItems) {
+                    SendMessage(hNewListBox, LB_ADDSTRING, 0, reinterpret_cast<LPARAM>(item.c_str()));
+                }
+                break;
+            }
+
             case IDM_ABOUT:
                 DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
                 break;
@@ -229,4 +269,21 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     }
     return (INT_PTR)FALSE;
+}
+
+std::vector<std::wstring> PerformSearch(const std::wstring& searchText) {
+    std::vector<std::wstring> res;
+    int itemCount = SendMessage(hList, LB_GETCOUNT, 0, 0);
+    if (itemCount != LB_ERR) {
+        // 遍历列表框中的所有项
+        for (int i = 0; i < itemCount; ++i) {
+            wchar_t buffer[256];
+            SendMessage(hList, LB_GETTEXT, i, reinterpret_cast<LPARAM>(buffer));
+            // 如果当前项包含搜索文本，则选中该项
+            if (wcsstr(buffer, searchText.c_str()) != nullptr) {
+                res.push_back(buffer);
+            }
+        }
+    }
+    return res;
 }
