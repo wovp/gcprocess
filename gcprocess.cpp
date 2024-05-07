@@ -18,12 +18,15 @@ LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 gxControlProcess gx;
 gxStr gxstr;
+
+// 所有进程信息
+std::vector<ProcessInfo> gxprocesses;
 // 窗口列表类句柄
 HWND hList;
 // 搜索结果列表框句柄
 HWND hNewListBox;
 
-std::vector<std::wstring> PerformSearch(const std::wstring& searchText);
+void PerformSearch(const std::wstring& searchText);
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
                      _In_ LPWSTR    lpCmdLine,
@@ -149,7 +152,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         // 将字体应用到列表框
         SendMessage(hList, WM_SETFONT, reinterpret_cast<WPARAM>(hFont), TRUE);
         // 获取进程信息
-        std::vector<ProcessInfo> gxprocesses = gx.gxGetAllProcesses();
+        gxprocesses = gx.gxGetAllProcesses();
 
         // 将进程信息添加到列表框中
         for (const auto& process : gxprocesses)
@@ -209,17 +212,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 MessageBox(hWnd, message, L"选定项信息", MB_OK | MB_ICONINFORMATION);
 
                 // 搜索按钮被点击，执行搜索操作
-                std::vector<std::wstring> matchingItems = PerformSearch(gxsearchText);
-
-                // 创建新的列表框
-                HWND hNewListBox = CreateWindowEx(0, L"LISTBOX", nullptr,
-                    WS_CHILD | WS_VISIBLE | WS_VSCROLL | LBS_STANDARD,
-                    gxSearchProcessX, gxSearchProcessY, gxSearchProcessLength, gxSearchProcessWidth, hWnd, nullptr, nullptr, nullptr);
-
-                // 向新列表框添加满足条件的项
-                for (const auto& item : matchingItems) {
-                    SendMessage(hNewListBox, LB_ADDSTRING, 0, reinterpret_cast<LPARAM>(item.c_str()));
-                }
+                PerformSearch(gxsearchText);
                 break;
             }
 
@@ -271,19 +264,16 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     return (INT_PTR)FALSE;
 }
 
-std::vector<std::wstring> PerformSearch(const std::wstring& searchText) {
-    std::vector<std::wstring> res;
-    int itemCount = SendMessage(hList, LB_GETCOUNT, 0, 0);
-    if (itemCount != LB_ERR) {
-        // 遍历列表框中的所有项
-        for (int i = 0; i < itemCount; ++i) {
-            wchar_t buffer[256];
-            SendMessage(hList, LB_GETTEXT, i, reinterpret_cast<LPARAM>(buffer));
-            // 如果当前项包含搜索文本，则选中该项
-            if (wcsstr(buffer, searchText.c_str()) != nullptr) {
-                res.push_back(buffer);
-            }
+void PerformSearch(const std::wstring& searchText) {
+    int n = gxprocesses.size();
+    SendMessage(hList, LB_RESETCONTENT, 0, 0);
+    // 遍历列表框中的所有项
+    for (int i = 0; i < n; ++i) {
+        std::wstring processInfo = L"Process ID:" + std::to_wstring(gxprocesses[i].processId) + L", " + gxprocesses[i].processName;
+        // 如果当前项包含搜索文本，则选中该项
+        if (wcsstr(processInfo.c_str(), searchText.c_str()) != nullptr) {
+            SendMessage(hList, LB_ADDSTRING, 0, reinterpret_cast<LPARAM>(processInfo.c_str()));
         }
     }
-    return res;
+
 }

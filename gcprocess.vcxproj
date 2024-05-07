@@ -138,7 +138,6 @@
     <ClCompile Include="gcprocess.cpp" />
     <ClCompile Include="gxControlProcess.cpp" />
     <ClCompile Include="gxStr.cpp" />
-    <ClCompile Include="README" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="gcprocess.rc" />

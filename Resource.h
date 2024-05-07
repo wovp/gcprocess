@@ -23,6 +23,10 @@
 #define IDC_SEARCH_BUTTON 1002
 // 搜索框ID值
 #define IDC_SEARCH_BOX 1003
+
+// 搜索结果的列表ID值
+#define IDC_SEARCH_LISTBOX 1004
+
 #endif
 // 新对象的下一组默认值
 //
