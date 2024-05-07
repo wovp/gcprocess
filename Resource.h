@@ -27,6 +27,12 @@
 // 搜索结果的列表ID值
 #define IDC_SEARCH_LISTBOX 1004
 
+// 暂停按钮ID值
+#define IDC_POS_BUTTON 1005
+
+// 继续按钮ID值
+#define IDC_CON_BUTTON 1006
+
 #endif
 // 新对象的下一组默认值
 //

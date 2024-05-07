@@ -19,7 +19,14 @@ DWORD gxSearchButtonY = 10;
 DWORD gxSearchButtonLength = 60;
 DWORD gxSearchButtonWidth = 20;
 
-DWORD gxSearchProcessX = 660;
-DWORD gxSearchProcessY = 50;
-DWORD gxSearchProcessLength = 600;
-DWORD gxSearchProcessWidth = 200;
+// 暂停按钮位置和大小
+DWORD gxPosButtonX = 300;
+DWORD gxPosButtonY = 10;
+DWORD gxPosButtonLength = 60;
+DWORD gxPosButtonWidth = 20;
+
+// 继续按钮位置和大小
+DWORD gxConButtonX = 380;
+DWORD gxConButtonY = 10;
+DWORD gxConButtonLength = 60;
+DWORD gxConButtonWidth = 20;

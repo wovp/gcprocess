@@ -16,7 +16,7 @@ ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
-gxControlProcess gx;
+gxControlProcess gxProcss;
 gxStr gxstr;
 
 // 所有进程信息
@@ -25,6 +25,10 @@ std::vector<ProcessInfo> gxprocesses;
 HWND hList;
 // 搜索结果列表框句柄
 HWND hNewListBox;
+
+// 选中的进程号
+DWORD selectedProcessId;
+
 
 void PerformSearch(const std::wstring& searchText);
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
@@ -143,7 +147,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
     case WM_CREATE:
     {
-
+        selectedProcessId = -1;
         // 创建列表框
         hList = CreateWindowEx(0, L"LISTBOX", nullptr,
             WS_CHILD | WS_VISIBLE | WS_VSCROLL | LBS_STANDARD,
@@ -151,8 +155,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             hWnd, reinterpret_cast<HMENU>(IDC_PROCESSLISTBOX), nullptr, nullptr);
         // 将字体应用到列表框
         SendMessage(hList, WM_SETFONT, reinterpret_cast<WPARAM>(hFont), TRUE);
+
+        // 创建暂停按钮
+        HWND hPosButton = CreateWindowEx(0, L"BUTTON", L"Pos",
+            WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+            gxPosButtonX, gxPosButtonY, gxPosButtonLength, gxPosButtonWidth, // 按钮位置和大小
+            hWnd, reinterpret_cast<HMENU>(IDC_POS_BUTTON), hInst, nullptr);
+
+        // 创建继续按钮
+        HWND hConButton = CreateWindowEx(0, L"BUTTON", L"Continue",
+            WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+            gxConButtonX, gxConButtonY, gxConButtonLength, gxConButtonWidth, // 按钮位置和大小
+            hWnd, reinterpret_cast<HMENU>(IDC_CON_BUTTON), hInst, nullptr);
+
+
         // 获取进程信息
-        gxprocesses = gx.gxGetAllProcesses();
+        gxprocesses = gxProcss.gxGetAllProcesses();
 
         // 将进程信息添加到列表框中
         for (const auto& process : gxprocesses)
@@ -188,8 +206,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                         // 获取选定项的文本
                         wchar_t buffer[256]; // 假设文本不超过 256 个字符
                         SendMessage(hListBox, LB_GETTEXT, selectedIndex, reinterpret_cast<LPARAM>(buffer));
-                        // 将文本和下标格式化为一个字符串
+                        // 提取进程号
                         int gxProcessId = gxstr.extractID(buffer);
+                        selectedProcessId = gxProcessId;
                         wchar_t message[512]; // 假设消息不超过 512 个字符
                         swprintf_s(message, 512, L"选定项文本：%s\n选定项下标：%d\n 进程号 %d", buffer, selectedIndex, gxProcessId);
 
@@ -209,12 +228,45 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 GetWindowText(GetDlgItem(hWnd, IDC_SEARCH_BOX), buffer, 256);
                 std::wstring gxsearchText(buffer);
                 swprintf_s(message, 512, L"选定项文本：%s", buffer);
-                MessageBox(hWnd, message, L"选定项信息", MB_OK | MB_ICONINFORMATION);
+                // MessageBox(hWnd, message, L"选定项信息", MB_OK | MB_ICONINFORMATION);
 
                 // 搜索按钮被点击，执行搜索操作
                 PerformSearch(gxsearchText);
                 break;
             }
+
+            case IDC_POS_BUTTON:
+            {
+                if (selectedProcessId == -1) {
+                    MessageBox(hWnd, L"请选中一个进程", L"选定项信息", MB_OK | MB_ICONINFORMATION);
+                    break;
+                }
+                bool f = gxProcss.gxPauseProcess(selectedProcessId);
+                if (f) {
+                    MessageBox(hWnd, L"暂停成功", L"选定项信息", MB_OK | MB_ICONINFORMATION);
+                }
+                else {
+                    MessageBox(hWnd, L"暂停失败", L"选定项信息", MB_OK | MB_ICONINFORMATION);
+                }
+                break;
+            }
+
+            case IDC_CON_BUTTON:
+            {
+                if (selectedProcessId == -1) {
+                    MessageBox(hWnd, L"请选中一个进程", L"选定项信息", MB_OK | MB_ICONINFORMATION);
+                    break;
+                }
+                bool f = gxProcss.gxResumeProcess(selectedProcessId);
+                if (f) {
+                    MessageBox(hWnd, L"恢复成功", L"选定项信息", MB_OK | MB_ICONINFORMATION);
+                }
+                else {
+                    MessageBox(hWnd, L"恢复失败", L"选定项信息", MB_OK | MB_ICONINFORMATION);
+                }
+                break;
+            }
+
 
             case IDM_ABOUT:
                 DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
