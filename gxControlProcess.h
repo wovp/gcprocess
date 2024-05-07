@@ -21,5 +21,6 @@ public:
     bool gxPauseProcess(DWORD processId);
     bool gxResumeProcess(DWORD processId);
     std::vector<DWORD>ListProcessThreads(DWORD processId);
+    bool gxCompressProcessMemory(DWORD processId);
 };
 

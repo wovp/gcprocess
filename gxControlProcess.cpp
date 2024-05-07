@@ -149,3 +149,15 @@ void printError(TCHAR const* msg)
     // Display the message
     _tprintf(TEXT("\n  WARNING: %s failed with error %d (%s)"), msg, eNum, sysMsg);
 }
+
+bool gxControlProcess::gxCompressProcessMemory(DWORD processId) {
+    // 获取目标进程的句柄
+    DWORD gxprocessId = 1234; // 替换为你目标进程的 ID
+    HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processId);
+    if (hProcess == NULL) {
+        std::cerr << "Failed to open process. Error code: " << GetLastError() << std::endl;
+        return 1;
+    }
+    // 关闭进程句柄
+    CloseHandle(hProcess);
+}
